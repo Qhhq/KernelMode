@@ -8,12 +8,14 @@
 
 int main(int argc, char *argv[])
 {
-	int file_desc = ::open(DEVPATH, O_RDONLY);
-	if (file_desc < 0) 
+
+    ha::scoped_resource<int, char*, int> file_desc(::open, DEVPATH, O_RDONLY, ::close);
+
+    if (file_desc < 0)
 	{
-		std::cout << "can`t open : " << DEVPATH << std::endl;
-		return -1;
+		throw std::runtime_error(std::string("open() failed: ") + ::strerror(errno));
 	}
+        
 	KMParam param;
 	param.countThread = 3;
 	param.calls = 22;
@@ -26,8 +28,7 @@ int main(int argc, char *argv[])
 		std::cout << "ioctl_set_msg failed: " << ret_val << std::endl;
 		return -1;
 	}
-	std::cout << "close: " << DEVPATH << std::endl;
-	::close(file_desc);
+
 	// cat /proc/devices | grep driver_dev 
 	// 251 driver_dev
 	//sudo mknod -m0666 /dev/qqq_123 c 251 0 
