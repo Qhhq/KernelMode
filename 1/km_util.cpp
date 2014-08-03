@@ -6,11 +6,14 @@
 
 #include <ioctl.h>
 
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+
 int main(int argc, char *argv[])
 {
-
-    ha::scoped_resource<int, char*, int> file_desc(::open, DEVPATH, O_RDONLY, ::close);
-
+	int file_desc = ::open(DEVPATH, O_RDONLY);
+	boost::shared_ptr<void> guard(static_cast<void*>(0), boost::bind(::close, file_desc));
+	  
     if (file_desc < 0)
 	{
 		throw std::runtime_error(std::string("open() failed: ") + ::strerror(errno));
